@@ -1,0 +1,206 @@
+Manejo de usuarios
+---------------------
+Se pueden crear nuevos usuarios y asignarles diferentes permisos, esto con el fin de poder saber 
+en todo momento, o auditorías quien hizo que…
+
+Lo ideal es no compartir mismos usuarios ni misma contraseña.
+
+La autenticación se puede dar por medio de login con Github o Google, esto con el uso de plugins.
+
+- Para crear, eliminar, editar un usuario:
+Ir a Manage Jenkins/ Manage Users/ Create user (en caso de crear). Para editar o borrar solo se debe dar 
+clic en user id deseado, después elegir opción Configurar o Borrar
+
+Se modificanpor manage users
+
+Jobs - freestail project
+----
+Es una unidad de trabajo
+
+Creacion
+1. create new jobs -> agregar un nombre -> freestyle project
+2. en build - excecute shell -> para escribir comandos de bash
+3. con build npw ejecuta el job
+
+
+
+----------------------------------
+interaccion con la maquina local
+----------------------------------
+* se puede usar para correr cualquier lenguaje
+
+1. se construye un proyecto
+2. en el apartado de comando puedo ejecutar cualquiera de las herramientas que se instalan en la maquina en la que corre
+
+
+** Se recomienda el uso de pliguines para el lenguaje que necesite el job (le dará portabiliad).
+la configuracion se encuentran en global build configuration
+esto modificará el build dando mas opciones para correr el lengaje del plugin
+
+
+-------------
+Wachers
+-------------
+Primero instalamos el plugin Parameterized Trigger
+
+Luego vamos a crear 2 jobs nuevos:
+watchers: En este job, vamos a configure y vamos a “Build after other projects are built” y escribimos y escribimos [NombreJob], sí [NombreJob] es successful, quiero que se ejecute watchers.
+Y en la parte de executed shell, escribimos : echo “Running after [NombreJob] success” y guardamos.
+parameterized: Acepta parámetros cuando lo llamo. Marcamos la opción “ This project is parameterized” y en el name escribimos ROOT_ID.
+Y en el execute shell: echo “calle with $ROOT_ID” y guardamos.
+
+Y en [NombreJob], en Downstream project, y estos se añaden cuando jenkins se da cuenta que su job tiene una dependencia con otro.
+Vamos al configure de [NombreJob] y en el execute shell escribimos:
+echo “Hello Platzi from $NAME”
+Y añadir un build step que se llama : “Trigger/call build on other projects”, y en projects to build escribimos parameterized y le damos en añadir parámetros, luego parámetros predefinidos y escribimos:
+ROOT_ID=$BUILD_NUMBER
+BUILD_NUMBER es una variable de entorno, que es el valor de esta ejecución y guardamos.
+
+Le damos en “build with parameters” y entramos al console output de parameterized y vemos que la ejecución número tal, fue la que ejecutó a parameterized.
+Corre [NombreJob], él llama declarativamente a parameterized e indirectamente a watchers.
+
+Corre los test para esta versión, cuando acabes, mandame esta versión a producción le pasó el id del commit, y se lo pasó a mí job que hace deployment y cuando lo resuelvas me lo despliegas.
+El sabe la cadena de ejecuciones que tuvo, y cuál fue el que inició este proceso.
+El profe recomienda usar parameterized jobs en vez de watchers, porque cuando uso watchers solo tengo tres opciones mientras que con parameterized jobs tengo más opciones.
+
+
+
+----------------------------------
+Conectando a GitHub con Jenkins
+----------------------------------
+Es posible conectar un repositorio de GitHub a Jenkins, de modo que cuando ocurra un evento en el repositorio (por ejemplo, un push) automaticamente se ejecute un build del source code. Para que esto sea posible se deben realizar algunas configuraciones en Jenkins y GitHub.
+
+Jenkins:
+
+Verificar que el GitHub plugin esté instalado (en caso de no estarlo proceder a instalarlo).
+Al crear el Job, se debe marcar en la sección SCM (Source Code Management) "GitHub hook trigger for GITScm polling" la opción de Git, y pegar la URL del repositorio (para esta acción el host de Jenkins debe tener instalado Git).
+En el apartado “Branches to build” se especifica el branch que Jenkins identificará y monitoreará.
+En caso de presentarse este error: (403) No valid crumb was included in the request Jenkins, en este post de Stackoverflow se plantean soluciones.
+En la sección “Build Triggers” se debe marcar la opción “GitHub hook trigger for GITScm polling”.
+GitHub:
+
+Ingresar al repositorio de GitHub.
+Ingresar en la sección Settings -> Webhooks.
+Webhooks permite que servicios externos sean notificados cuando ocurren ciertos eventos. Cuando ocurra un evento especifico (por ejemplo, un push), GitHub enviará una solicitud POST a cada una de las URL proporcionadas en la configuración. Obtenga más información en la Guía de Webhooks.
+Se añade un nuevo Webhook.
+Se añade la Payload URL (si la URL no finaliza en /github-webhook/, GItHub lanzara un error.)
+    http://localhost:8087/github-webhook/
+Por ultimo, se selecciona la opción “Just the push event”.
+
+
+NOTA: 
+------
+Pequeño tuto para los que lo ejecutan en local, para hacer la prueba use ngrok.com deben crear una cuenta descargar el archivo para su sistema, descomprimirlo y se autentican ./ngrok authtoken SU TOKEN y ejecutarlo ./ngrok http 8080
+en Github en Webhooks agregan la url que des dio la consola usen la https:
+Payload URL
+https://SU_URL.ngrok.io/github-webhook/
+
+Despues hacen cambios en el repositorio agregan el commit, push y la magia se hace.
+
+
+--------------
+Pipelines
+-----------
+Permiten hacer la automatizacion a travez de código
+* jenkis permite escribir el código o usar alguno que se encuentre en un repositorio
+    * en el repositorio buscará donde se encuentra el jenkinsfile
+
+
+Delcarative (.\node-project\jenkins-tests\Jenkinsfile)
+Esto va en el ROOT:
+1. Se indica que es un pipline en el encabezado
+2. Cuando no hay un slave correlo en cualquier ambiente (instancia de jenkins)
+    "agent any"
+3. llamar a los plugins que se necesitan en tools {} (dentro puedo especificar cuales son los tools como node)
+(en esta debo tener cuidado con el Nombre de la version que manaje jenkins-> global tool configuration se encuentre la misma version).
+4. declaramos el tiempo que debe correr en options{}
+
+Stages:
+* son los pasos donde va a ejecutar el código
+* cada stage tiene un step que es una orden 
+    stages{
+        stage('Nombre stage'){
+            steps{
+                sh 'comando o script'
+            }
+        }
+    }
+
+
+froma sencilla de desarrollar un pipeline
+-----------------------------------------
+* me ahorro algunos commits
+Cuando ya tengo un pipeline creado, puedo ingrasr por pipeline sintax, y me puede dar en la lista elxample step
+
+para llamar otro job:
+seleccionar build: Build a job
+lleno las opciones y en el build generado 
+
+* para ensayar el codigo, miro en replay del pipeline que quiero cambiar y agrego el codigo para probarlo
+
+
+---------
+Slaves
+------------
+dejan correr jobs indefinidamente ya que el jenkis puede ser muy exigente esto
+el slave se conecta al jenkinsmaster y este delega rabajo a los slave (permite crecer horizontalmente)
+
+Generar un slave 
+-------------------
+1. entrar al jnkins master desde la consola 
+    docker exec -it -u root nombreContenedor /bin/bash
+
+2. buscar la llave ssh
+    cat .ssh/
+* si no existe crearla 
+        
+
+3. crear otra maquina virtual 
+(en este caso es otro docker llamado agent)
+Comprobar si el agente y el master se escuchan entre sí
+$ localhost:50000
+Si tienen un error al dar un $ docker-compose down
+$ docker-compose down --remove-orphans
+
+si no se corre el docker file se debe agregar los usuarios
+ Ejecutar:
+    adduser jenkins
+ Instalar otros programas
+    apt-get install wget gnupg git vim
+
+* este es el usuario que se genera cuando se crea el master y el que ejecuta lo demas
+    
+4. creamos un directiorio para trabajo del jkins (cuando el master se conecta)
+    mkdir /var/jenkins
+
+5. Indicio quien es el dueño del directorio 
+    chown NombreUsuario:NombreGrupo /var/jenkins
+    chown jenkins:jenkins /var/jenkins
+
+6. Configuro la key 
+* entramos al usuario de jenkins
+    su jenkins 
+* verifico que exista directorio .ssh (y lo creo)
+    mkdir .ssh
+* creo la llave
+    vim .ssh/authorizred_keys
+
+** en este punto tendriamos listo el slave para trabajar con jekins
+
+7. Registrar el slave
+Ruta: Manage jenkins -> manage nodes -> new node
+llenar los datos (la cantidad de executer, debe ser equivalente a los equipos que corren) 
+root directorry el creado -> /var/jenkins
+label: dice donde va a correr (para que solo corra en un solo slave), si no hya restricciones se deja vacio
+host -> ip (se puede usar ngrock) (en un servicio de produccion no se pone la ip, se pone un record DNS)
+la llave privada la asocio en credentials
+    seleccional la opcion de ssh 
+    scope: Global
+    username Jenkins
+    private key (la que no tiene pub - copiar con los encabezados y los footer) 
+    ID jenkins
+
+8. para hacer que el master esté ocupado ponerle que ejecute 0 veces
+
+
+

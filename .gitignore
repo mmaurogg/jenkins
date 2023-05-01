@@ -1,0 +1,3 @@
+#ignorar data generada del uso
+jenkins-data
+jenkins-docker-certs

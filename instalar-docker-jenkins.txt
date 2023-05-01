@@ -1,0 +1,55 @@
+bajar imagen de docker
+    docker pull jenkins/jenkins
+
+correr imagen de docker 
+    docker run -d -v $(pwd)/jenkins_homre:/var/jenkins_home -p 50000:50000 -p 8080:8080 --name jenkinsTest jenkins/jenkins:lts
+
+Revisar que esté levantado
+    docker ps
+
+Obtener la llave
+ejecutar comando dentro del contenedor
+    docker excec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+
+copio el resultado de la ejecusion y lo pego como clave del navegador
+
+creo un nuevo proyecto (con o sin plugins)
+
+asigno usuario y contraseña
+
+asigno url
+
+
+----------------------------------
+Crear jenkins con docker compose
+----------------------------------
+1. crear los archivos Dockerfile y docker-compose.yml de esta carpeta
+2. correr   
+    sudo docker compose build
+    sudo docker compose up -d 
+Recordar -d es para ejecutarlo en backgorund
+
+3. configurar el jenkins
+- acceder a la contraseña 
+    docker exec nombreContenedor cat PATHmostradoEnUrl
+    sudo docker exec jenkins-jenkins-docker-1 cat /var/jenkins_home/secrets/initialAdminPassword
+
+- agregar la contraseña en la pagina web y configurar 
+    mao
+    abc123
+* si no configura el user: ADMIN
+
+
+
+
+// acceder al bash
+docker exec --user="root" -it nombreContenedor bash
+o
+docker exec -it -u root nombreContenedor /bin/bash
+
+crear otra maquina virtual 
+(en este caso es otro docker llamado agent)
+Comprobar si el agente y el master se escuchan entre sí
+$ localhost:50000
+Si tienen un error al dar un $ docker-compose down
+$ docker-compose down --remove-orphans
